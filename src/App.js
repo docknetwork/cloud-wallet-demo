@@ -8,7 +8,10 @@ import { createVerificationController } from "@docknetwork/wallet-sdk-core/lib/v
 import { createDataStore } from "@docknetwork/wallet-sdk-data-store-web/src/index";
 import { getVCData } from "@docknetwork/prettyvc";
 import axios from "axios";
-import { generateEDVKeys, initializeCloudWallet } from "@docknetwork/wallet-sdk-core/lib/cloud-wallet";
+import {
+  generateEDVKeys,
+  initializeCloudWallet,
+} from "@docknetwork/wallet-sdk-core/lib/cloud-wallet";
 import { setLocalStorageImpl } from "@docknetwork/wallet-sdk-data-store-web/src/localStorageJSON";
 
 // const EDV_URL = "http://localhost:8080";
@@ -88,37 +91,46 @@ function App() {
 
     setLoading(true);
 
-    const dataStore = await createDataStore({
-      databasePath: "dock-wallet",
-      defaultNetwork: "testnet",
-    });
+    try {
+      const dataStore = await createDataStore({
+        databasePath: "dock-wallet",
+        defaultNetwork: "testnet",
+      });
 
-    // Initialize cloud wallet
-    const _cloudWallet = await initializeCloudWallet({
-      dataStore,
-      edvUrl: EDV_URL,
-      agreementKey: walletKeys.agreementKey,
-      verificationKey: walletKeys.verificationKey,
-      hmacKey: walletKeys.hmacKey,
-      authKey: EDV_AUTH_KEY,
-    });
+      // Initialize cloud wallet
+      const _cloudWallet = await initializeCloudWallet({
+        dataStore,
+        edvUrl: EDV_URL,
+        agreementKey: walletKeys.agreementKey,
+        verificationKey: walletKeys.verificationKey,
+        hmacKey: walletKeys.hmacKey,
+        authKey: EDV_AUTH_KEY,
+      });
 
-    setCloudWallet(_cloudWallet);
+      setCloudWallet(_cloudWallet);
 
-    // Pull documents from EDV and add to local wallet
-    await _cloudWallet.pullDocuments();
+      try {
+        // Pull documents from EDV and add to local wallet
+        await _cloudWallet.pullDocuments();
+      } catch (err) {
+        console.error("Error pulling documents from EDV");
+        console.error(err);
+      }
 
-    const wallet = await createWallet({
-      dataStore,
-    });
+      const wallet = await createWallet({
+        dataStore,
+      });
 
-    const credentialProvider = await createCredentialProvider({
-      wallet,
-    });
+      const credentialProvider = await createCredentialProvider({
+        wallet,
+      });
 
-    console.log("Wallet created", wallet);
-    setCredentialProvider(credentialProvider);
-    setWallet(wallet);
+      console.log("Wallet created", wallet);
+      setCredentialProvider(credentialProvider);
+      setWallet(wallet);
+    } catch (err) {
+      console.error(err);
+    }
     setLoading(false);
   }
 
@@ -222,10 +234,14 @@ function App() {
 
   const handleCreateWallet = async () => {
     setLoading(true);
-    const newKeys = await generateEDVKeys();
+    try {
+      const newKeys = await generateEDVKeys();
 
-    localStorage.setItem("keys", JSON.stringify(newKeys));
-    setWalletKeys(newKeys);
+      localStorage.setItem("keys", JSON.stringify(newKeys));
+      setWalletKeys(newKeys);
+    } catch (err) {
+      console.errorq("Error generating keys", err);
+    }
     setLoading(false);
   };
 
