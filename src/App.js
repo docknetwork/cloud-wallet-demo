@@ -8,10 +8,10 @@ import { createVerificationController } from "@docknetwork/wallet-sdk-core/lib/v
 import { createDataStore } from "@docknetwork/wallet-sdk-data-store-web/src/index";
 import { getVCData } from "@docknetwork/prettyvc";
 import axios from "axios";
-import { initializeCloudWallet } from "@docknetwork/wallet-sdk-core/lib/cloud-wallet";
+import { generateEDVKeys, initializeCloudWallet } from "@docknetwork/wallet-sdk-core/lib/cloud-wallet";
 import { setLocalStorageImpl } from "@docknetwork/wallet-sdk-data-store-web/src/localStorageJSON";
 
-const EDV_URL = "https://edv.dock.io";
+const EDV_URL = "http://localhost:8080";
 const EDV_AUTH_KEY = "DOCKWALLET-TEST";
 
 setLocalStorageImpl(global.localStorage);
@@ -92,6 +92,7 @@ function App() {
       defaultNetwork: "testnet",
     });
 
+    // Initialize cloud wallet
     const _cloudWallet = await initializeCloudWallet({
       dataStore,
       edvUrl: EDV_URL,
@@ -103,6 +104,7 @@ function App() {
 
     setCloudWallet(_cloudWallet);
 
+    // Pull documents from EDV and add to local wallet
     await _cloudWallet.pullDocuments();
 
     const wallet = await createWallet({
@@ -217,27 +219,9 @@ function App() {
     }
   };
 
-  const handleCreateWallet = () => {
+  const handleCreateWallet = async () => {
     setLoading(true);
-    const newKeys = {
-      agreementKey: {
-        type: "X25519KeyAgreementKey2020",
-        id: "did:key:z6LSqN54mGZqf99ptTHyB3WWpwnrs25uAMrUgWsZiSLCdSDP#z6LSqN54mGZqf99ptTHyB3WWpwnrs25uAMrUgWsZiSLCdSDP",
-        controller: "did:key:z6LSqN54mGZqf99ptTHyB3WWpwnrs25uAMrUgWsZiSLCdSDP",
-        publicKeyMultibase: "z6LSqN54mGZqf99ptTHyB3WWpwnrs25uAMrUgWsZiSLCdSDP",
-        privateKeyMultibase: "z3weecLZfDoMXCvQYUpvjTdvnw9g5zjRmh7eErSpJQwQjCar",
-      },
-      verificationKey: {
-        id: "did:key:z6MkjjCpsoQrwnEmqHzLdxWowXk5gjbwor4urC1RPDmGeV8r#z6MkjjCpsoQrwnEmqHzLdxWowXk5gjbwor4urC1RPDmGeV8r",
-        controller: "did:key:z6MkjjCpsoQrwnEmqHzLdxWowXk5gjbwor4urC1RPDmGeV8r",
-        type: "Ed25519VerificationKey2018",
-        privateKeyBase58:
-          "3CQCBKF3Mf1tU5q1FLpHpbxYrNYxLiZk4adDtfyPEfc39Wk6gsTb2qoc1ZtpqzJYdM1rG4gpaD3ZVKdkiDrkLF1p",
-        publicKeyBase58: "6GwnHZARcEkJio9dxPYy6SC5sAL6PxpZAB6VYwoFjGMU",
-      },
-      hmacKey:
-        "T4TUcRii3XOf8gwq37_MiCfUKCY074xRo2FCy-rZyXxmD_NPrALuMdWxFE91j7ZoqRUm6tUrq3LJGiRYWRGgLw",
-    };
+    const newKeys = await generateEDVKeys();
 
     localStorage.setItem("keys", JSON.stringify(newKeys));
     setWalletKeys(newKeys);
