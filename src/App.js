@@ -11,7 +11,8 @@ import axios from "axios";
 import { generateEDVKeys, initializeCloudWallet } from "@docknetwork/wallet-sdk-core/lib/cloud-wallet";
 import { setLocalStorageImpl } from "@docknetwork/wallet-sdk-data-store-web/src/localStorageJSON";
 
-const EDV_URL = "http://localhost:8080";
+// const EDV_URL = "http://localhost:8080";
+const EDV_URL = "https://edv.dock.io";
 const EDV_AUTH_KEY = "DOCKWALLET-TEST";
 
 setLocalStorageImpl(global.localStorage);
